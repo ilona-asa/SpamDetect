@@ -2,6 +2,8 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.datasets import load_iris
 import os
+import email.parser
+from email.parser import Parser
 
 iris = load_iris()
 # store the feature matrix (X) and response vector (y)
@@ -14,6 +16,7 @@ y = iris.target
 # read file into pandas using a relative path
 #path = 'data/sms.tsv'
 #path = 'data/0006.2003-12-18.GP.spam.txt'
+parser = Parser()
 rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
 listtexts = []
 labels = []
@@ -25,23 +28,33 @@ for subdirs,dir,files in os.walk(rootdir):
         elif 'py' in path:
             continue
         else:
-            f = open(path)
-            email = f.read()
+            f = open(path,'r').read()
+            msg = email.message_from_string(f)
+            if msg.is_multipart():
+                for payload in msg.get_payload():
+                    Text = payload.get_payload()
+            else:
+                Text = msg.get_payload()
+
+            '''email = f.read()
             em = email.splitlines()
 
             Text = ""
             flag = 0
 
             for e in em:
-
                 if 'X-FileName:' in e:
                     flag = 1
                     continue
                 if flag == 1:
-                    Text = Text + e
+                    Text = Text + e'''
         listtexts.append(Text)
-        labels.append('Not Spam')
-print len(listtexts)
+        if 'BG' in path or 'GP' in path or 'SH' in path:
+            labels.append('Spam')
+        else:
+            labels.append('Not Spam')
+print listtexts
+print labels
 #sms = pd.read_table(path, header=None, names=['label', 'message'])
 
 
