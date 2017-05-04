@@ -5,7 +5,7 @@ import os
 import email.parser
 import re
 from email.parser import Parser
-#from email.Utils import parseaddr
+# from email.Utils import parseaddr
 from email.Header import decode_header
 
 iris = load_iris()
@@ -16,94 +16,99 @@ y = iris.target
 
 # In[38]:
 
-atom_rfc2822=r"[a-zA-Z0-9_!#\$\%&'*+/=?\^`{}~|\-]+"
-atom_posfix_restricted=r"[a-zA-Z0-9_#\$&'*+/=?\^`{}~|\-]+" # without '!' and '%'
-atom=atom_rfc2822
-dot_atom=atom  +  r"(?:\."  +  atom  +  ")*"
-quoted=r'"(?:\\[^\r\n]|[^\\"])*"'
-local="(?:"  +  dot_atom  +  "|"  +  quoted  +  ")"
-domain_lit=r"\[(?:\\\S|[\x21-\x5a\x5e-\x7e])*\]"
-domain="(?:"  +  dot_atom  +  "|"  +  domain_lit  +  ")"
-addr_spec=local  +  "\@"  +  domain
+atom_rfc2822 = r"[a-zA-Z0-9_!#\$\%&'*+/=?\^`{}~|\-]+"
+atom_posfix_restricted = r"[a-zA-Z0-9_#\$&'*+/=?\^`{}~|\-]+"  # without '!' and '%'
+atom = atom_rfc2822
+dot_atom = atom + r"(?:\." + atom + ")*"
+quoted = r'"(?:\\[^\r\n]|[^\\"])*"'
+local = "(?:" + dot_atom + "|" + quoted + ")"
+domain_lit = r"\[(?:\\\S|[\x21-\x5a\x5e-\x7e])*\]"
+domain = "(?:" + dot_atom + "|" + domain_lit + ")"
+addr_spec = local + "\@" + domain
 
-email_address_re=re.compile('^'+addr_spec+'$')
+email_address_re = re.compile('^' + addr_spec + '$')
+
 
 def getmailaddresses(msg, name):
     """retrieve From:, To: and Cc: addresses"""
-    addrs=email.utils.getaddresses(msg.get_all(name, []))
+    addrs = email.utils.getaddresses(msg.get_all(name, []))
     for i, (name, addr) in enumerate(addrs):
         if not name and addr:
             # only one string! Is it the address or is it the name ?
             # use the same for both and see later
-            name=addr
-            
+            name = addr
+
         try:
             # address must be ascii only
-            addr=addr.encode('ascii')
+            addr = addr.encode('ascii')
         except UnicodeError:
-            addr=''
+            addr = ''
         else:
             # address must match adress regex
             if not email_address_re.match(addr):
-                addr=''
-        addrs[i]=(getmailheader(name), addr)
+                addr = ''
+        addrs[i] = (getmailheader(name), addr)
     return addrs
+
 
 def getmailheader(header_text, default="ascii"):
     """Decode header_text if needed"""
     try:
-        headers=decode_header(header_text)
+        headers = decode_header(header_text)
     except email.Errors.HeaderParseError:
         # This already append in email.base64mime.decode()
-        # instead return a sanitized ascii string 
+        # instead return a sanitized ascii string
         return header_text.encode('ascii', 'replace').decode('ascii')
     else:
         for i, (text, charset) in enumerate(headers):
             try:
-                headers[i]=unicode(text, charset or default, errors='replace')
+                headers[i] = unicode(text, charset or default, errors='replace')
             except LookupError:
-                # if the charset is unknown, force default 
-                headers[i]=unicode(text, default, errors='replace')
+                # if the charset is unknown, force default
+                headers[i] = unicode(text, default, errors='replace')
         return u"".join(headers)
 
+
 # read file into pandas using a relative path
-#path = 'data/sms.tsv'
-#path = 'data/0006.2003-12-18.GP.spam.txt'
+# path = 'data/sms.tsv'
+# path = 'data/0006.2003-12-18.GP.spam.txt'
 parser = Parser()
-rootdir = 'spam/BG/2004/09/'
-#rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
+rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
+# rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
 listtexts = []
 labels = []
-for subdirs,dir,files in os.walk(rootdir):
+for subdirs, dir, files in os.walk(rootdir):
     for file in files:
-        path =  os.path.join(subdirs, file)
+        path = os.path.join(subdirs, file)
         if '.idea' in path:
             continue
         elif 'py' in path:
             continue
         else:
-            f = open(path,'r').read()
+            f = open(path, 'r').read()
             msg = email.message_from_string(f)
 
-            subject=getmailheader(msg.get('Subject', ''))
-            #print(subject)
-            from_=getmailaddresses(msg, 'from')
-            from_=('', '') if not from_ else from_[0]
+            subject = getmailheader(msg.get('Subject', ''))
+            # print(subject)
+            from_ = getmailaddresses(msg, 'from')
+            from_ = ('', '') if not from_ else from_[0]
             print(from_)
             if msg.is_multipart():
                 for payload in msg.get_payload():
                     Text = str(payload.get_payload())
+                    Text = re.sub(r'[^\x00-\x7F]+',' ', Text)
             else:
                 Text = str(msg.get_payload())
+                Text = re.sub(r'[^\x00-\x7F]+', ' ', Text)
 
             cleanbr = re.compile('<br>|<BR>')
             cleanr = re.compile('<.*?>')
-            #cleannline = re.compile('\n')
+            # cleannline = re.compile('\n')
             Text = re.sub('\s+', ' ', Text)
-            #Text = Text.translate("  ", '\t\n ')
+            # Text = Text.translate("  ", '\t\n ')
             Text = re.sub(cleanbr, ' ', Text)
             Text = re.sub(cleanr, '', Text)
-            
+
             '''email = f.read()
             em = email.splitlines()
 
@@ -122,8 +127,8 @@ for subdirs,dir,files in os.walk(rootdir):
         else:
             labels.append('Not Spam')
 print listtexts
-#print labels
-#sms = pd.read_table(path, header=None, names=['label', 'message'])
+# print labels
+# sms = pd.read_table(path, header=None, names=['label', 'message'])
 
 
 # In[ ]:
@@ -136,20 +141,20 @@ print listtexts
 # In[39]:
 
 # examine the shape
-#sms.shape
-#email
+# sms.shape
+# email
 
 
 # In[41]:
 
 
-#print ("test")
-#print (em)
+# print ("test")
+# print (em)
 
 
 # In[33]:
 
-#type(em)
+# type(em)
 
 
 # In[34]:
@@ -159,12 +164,10 @@ vect = CountVectorizer(stop_words='english')
 # learn the 'vocabulary' of the training data (occurs in-place)
 vect.fit(listtexts)
 
-
 # In[35]:
 
 # examine the fitted vocabulary
 vect.get_feature_names()
-
 
 # In[36]:
 
@@ -172,53 +175,51 @@ vect.get_feature_names()
 simple_train_dtm = vect.transform(listtexts)
 simple_train_dtm
 
-
 # In[37]:
 
 # convert sparse matrix to a dense matrix
 simple_train_dtm.toarray()
 
-
 # In[ ]:
 
 # examine the first 10 rows
-#sms.head(10)
+# sms.head(10)
 
 
 # In[ ]:
 
 # examine the class distribution
-#sms.label.value_counts()
+# sms.label.value_counts()
 
 
 # In[ ]:
 
 # convert label to a numerical variable
-#sms['label_num'] = sms.label.map({'ham':0, 'spam':1})
+# sms['label_num'] = sms.label.map({'ham':0, 'spam':1})
 
 
 # In[ ]:
 
 # check that the conversion worked
-#sms.head(10)
+# sms.head(10)
 
 
 # In[ ]:
 
 # how to define X and y (from the iris data) for use with a MODEL
-#X = iris.data
-#y = iris.target
-#print(X.shape)
-#print(y.shape)
+# X = iris.data
+# y = iris.target
+# print(X.shape)
+# print(y.shape)
 
 
 # In[ ]:
 
 # how to define X and y (from the SMS data) for use with COUNTVECTORIZER
-#X = sms.message
-#y = sms.label_num
-#print(X.shape)
-#print(y.shape)
+# X = sms.message
+# y = sms.label_num
+# print(X.shape)
+# print(y.shape)
 
 
 # In[ ]:
