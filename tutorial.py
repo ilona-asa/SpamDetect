@@ -70,8 +70,8 @@ def getmailheader(header_text, default="ascii"):
 #path = 'data/sms.tsv'
 #path = 'data/0006.2003-12-18.GP.spam.txt'
 parser = Parser()
-#rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
-rootdir = 'ham/beck-s/wilson__shona'
+#rootdir = 'ham/beck-s/wilson__shona'
+rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
 listtexts = []
 labels = []
 for subdirs,dir,files in os.walk(rootdir):
@@ -84,6 +84,7 @@ for subdirs,dir,files in os.walk(rootdir):
         else:
             f = open(path,'r').read()
             msg = email.message_from_string(f)
+
             subject=getmailheader(msg.get('Subject', ''))
             print(subject)
             from_=getmailaddresses(msg, 'from')
@@ -102,7 +103,13 @@ for subdirs,dir,files in os.walk(rootdir):
             #Text = Text.translate("  ", '\t\n ')
             Text = re.sub(cleanbr, ' ', Text)
             Text = re.sub(cleanr, '', Text)
-        
+    
+            if msg.is_multipart():
+                for payload in msg.get_payload():
+                    Text = payload.get_payload()
+            else:
+                Text = msg.get_payload()
+
             '''email = f.read()
             em = email.splitlines()
 
@@ -110,13 +117,6 @@ for subdirs,dir,files in os.walk(rootdir):
             flag = 0
 
             for e in em:
-                if 'From:' in e and e[0] == 'F' and e[4] == ':':
-                    print(e)
-                    listTo.append(e)
-                elif 'To:' in e and e[0] == 'T' and e[2] == ':':
-                    print(e)
-                    listFrom.append(e)
-
                 if 'X-FileName:' in e:
                     flag = 1
                     continue
