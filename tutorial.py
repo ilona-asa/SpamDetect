@@ -5,7 +5,7 @@ import os
 import email.parser
 import re
 from email.parser import Parser
-from email.Utils import parseaddr
+#from email.Utils import parseaddr
 from email.Header import decode_header
 
 iris = load_iris()
@@ -70,8 +70,8 @@ def getmailheader(header_text, default="ascii"):
 #path = 'data/sms.tsv'
 #path = 'data/0006.2003-12-18.GP.spam.txt'
 parser = Parser()
-#rootdir = 'ham/beck-s/wilson__shona'
-rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
+rootdir = 'spam/BG/2004/09/'
+#rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
 listtexts = []
 labels = []
 for subdirs,dir,files in os.walk(rootdir):
@@ -86,7 +86,7 @@ for subdirs,dir,files in os.walk(rootdir):
             msg = email.message_from_string(f)
 
             subject=getmailheader(msg.get('Subject', ''))
-            print(subject)
+            #print(subject)
             from_=getmailaddresses(msg, 'from')
             from_=('', '') if not from_ else from_[0]
             print(from_)
@@ -103,13 +103,7 @@ for subdirs,dir,files in os.walk(rootdir):
             #Text = Text.translate("  ", '\t\n ')
             Text = re.sub(cleanbr, ' ', Text)
             Text = re.sub(cleanr, '', Text)
-    
-            if msg.is_multipart():
-                for payload in msg.get_payload():
-                    Text = payload.get_payload()
-            else:
-                Text = msg.get_payload()
-
+            
             '''email = f.read()
             em = email.splitlines()
 
