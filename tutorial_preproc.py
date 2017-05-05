@@ -26,7 +26,6 @@ for subdirs,dir,files in os.walk(rootdir):
         elif 'Summary.txt' in path:
             continue
         else:
-            print(path)
             f = open(path)
             email = f.read()
             em = email.splitlines()
@@ -40,7 +39,6 @@ for subdirs,dir,files in os.walk(rootdir):
                     Text = Text + " " + e
         #Text = Text.encode('utf-8').strip()
         Text = re.sub(r'[^\x00-\x7F]+',' ', Text)
-        print(Text)
         listtexts.append(Text)
         if 'spam' in subdirs:
             labels.append('Spam')
@@ -108,22 +106,26 @@ print(len(features))
 
 # transform training data into a 'document-term matrix'
 simple_train_dtm = vect.transform(listtexts)
-
+print(type(simple_train_dtm))
+print(simple_train_dtm)
 
 # In[37]:
 
 # convert sparse matrix to a dense matrix
 features_matr = simple_train_dtm.toarray()
+print(type(features_matr))
+print(features_matr)
 
-thefile = open('features_eron1', 'w')
+"""thefile = open('features_eron1', 'w')
 for item in features:
-  thefile.write("%s\n" % item)
+    thefile.write("%s\n" % item)"""
 # In[ ]:
 
-# examine the first 10 rows
-#sms.head(10)
-
-
+# examine the vocabulary and document-term matrix together
+import pandas as pd
+vocab = pd.DataFrame(simple_train_dtm.toarray(), columns=vect.get_feature_names())
+print(vocab)
+print(type(vocab))
 # In[ ]:
 
 # examine the class distribution
