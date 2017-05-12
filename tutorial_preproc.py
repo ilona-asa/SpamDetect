@@ -10,11 +10,13 @@ import re
 
 # read file into pandas using a relative path
 #rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
-rootdir = 'preprocessed_data/'
+rootdir = 'preprocessed_data/enron1/'
 listtexts_spam = []
 listtexts_ham = []
 labels_spam = []
 labels_ham = []
+listtexts = []
+labels = []
 spam = 0
 ham = 0
 for subdirs,dir,files in os.walk(rootdir):
@@ -40,8 +42,13 @@ for subdirs,dir,files in os.walk(rootdir):
                 Text = Text + " " + e
         #Text = Text.encode('utf-8').strip()
         Text = re.sub(r'[^\x00-\x7F]+',' ', Text)
-        
+        listtexts.append(Text)
+
         if 'spam' in subdirs:
+            labels.append('Spam')
+        else:
+            labels.append('Ham')
+"""        if 'spam' in subdirs:
             labels_spam.append('Spam')
             listtexts_spam.append(Text)
             spam += 1
@@ -49,22 +56,24 @@ for subdirs,dir,files in os.walk(rootdir):
             labels_ham.append('Ham')
             listtexts_ham.append(Text)
             ham += 1
+"""
 
-print len(labels_spam)
-print len(labels_ham)
+#print len(labels_spam)
+#print len(labels_ham)
 #print(labels)
 
-print len(listtexts_spam)
-print len(listtexts_ham)
+#print len(listtexts_spam)
+#print len(listtexts_ham)
 
 #randomize all the dataset for ham and spam separately
 from sklearn.utils import shuffle
-ham_text_random, ham_labels_random = shuffle(listtexts_ham, labels_ham, random_state=0)
+"""ham_text_random, ham_labels_random = shuffle(listtexts_ham, labels_ham, random_state=0)
 spam_text_random, spam_labels_random = shuffle(listtexts_spam, labels_spam, random_state=0)
-
+all_text = ham_text_random + spam_text_random
+"""
 
 #split dataset into train set and test set
-def splitData(ham_text, spam_text, ham_label, spam_label, split):
+"""def splitData(ham_text, spam_text, ham_label, spam_label, split):
     ham_split = int(split*len(ham_text))
     print(ham_split)
     spam_split = int(split*len(spam_text))
@@ -74,63 +83,78 @@ def splitData(ham_text, spam_text, ham_label, spam_label, split):
     test_set_text = ham_text[ham_split:] + spam_text[spam_split:]
     test_set_label = ham_label[ham_split:] + spam_label[spam_split:]
     return train_set_text, train_set_label, test_set_text, test_set_label
+"""
 
-train_set_text, train_set_label, test_set_text, test_set_label = splitData(ham_text_random, spam_text_random, ham_labels_random, spam_labels_random, 0.7)
-all_text = train_set_text + test_set_text
+from sklearn.utils import shuffle
+listtexts_random, labels_random = shuffle(listtexts, labels, random_state=0)
 
-##work on the training data
+def splitData(textdata, label, trainSize):
+    split = int(trainSize*len(textdata))
+    train_set_text = textdata[:split]
+    train_set_label = label[:split]
+    test_set_text = textdata[split:]
+    test_set_label = label[split:]
+    return train_set_text, train_set_label, test_set_text, test_set_label
+
+#train_set_text, train_set_label, test_set_text, test_set_label = splitData(listtexts_random, labels_random, 0.7)
+
+##Vectorized the data
 vect = CountVectorizer(stop_words='english')
 # learn the 'vocabulary' of the training data (occurs in-place)
-vect.fit(all_text)
-
-
-# In[35]:
+vect.fit(listtexts_random)
 
 # examine the fitted vocabulary
-features = vect.get_feature_names()
+features_name = vect.get_feature_names()
 #print(type(features))
-print(len(features))
-
-
-# In[36]:
+#print(len(features))
 
 # transform training data into a 'document-term matrix'
-simple_train_dtm = vect.transform(train_set_text)
-#print(type(simple_train_dtm))
-#print(simple_train_dtm)
-
-# In[37]:
+simple_train_dtm = vect.transform(listtexts_random)
 
 # convert sparse matrix to a dense matrix
 features_matr = simple_train_dtm.toarray()
-#print(type(features_matr))
-#print(features_matr)
-
 
 # examine the vocabulary and document-term matrix together
 import pandas as pd
-vocab = pd.DataFrame(simple_train_dtm.toarray(), columns=vect.get_feature_names())
+features = pd.DataFrame(simple_train_dtm.toarray(), columns=vect.get_feature_names())
+print(len(features))
 
-#insert class label and its value
-vocab['class_label'] = train_set_label
+##split data
+train_set_text, train_set_label, test_set_text, test_set_label = splitData(features, labels_random, 0.7)
 
-#shuffle data and labels
-"""import random
-c = list(zip(vocab, labels))
-random.shuffle(c)
-vocab_random, labels_random = zip(*c)"""
-#from sklearn.utils import shuffle
-#vocab_random, labels_random = shuffle(vocab, labels, random_state=0)
+# k-NN classifier
+# import the class
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import metrics
+from sklearn import cross_validation
 
-#print(vocab)
-#print(train_set_label)
-print len(vocab)
-print len(train_set_label)
+# instantiate the model (with the default parameters)
+knn = KNeighborsClassifier()
 
-#print(vocab)
-#print(train_set_label)
-#print(type(vocab))
+# fit the model with data (occurs in-place)
+knn.fit(train_set_text, train_set_label)
+print(knn)
+predict_knn = knn.predict(test_set_text)
+print(predict_knn)
+print("Classification report for classifier %s: \n %s \n"
+% ('k-NearestNeighbour', metrics.classification_report(test_set_label, predict_knn)))
+print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label, predict_knn))
+"""kFold = 10
+scores = cross_validation.cross_val_score(knn, features, labels_random, cv=kFold)
+print(scores)"""
 
-#save dataset into file
-#vocab.to_csv(r'trainset_feature.csv', header=True, index=True, sep=',')
+# 0.5 Classifer training and evaluation using SVM
+from sklearn.svm import LinearSVC
+from sklearn.metrics import accuracy_score
+clf_svm = LinearSVC()
+clf_svm.fit(train_set_text, train_set_label)
+predictedLabels = clf_svm.predict(test_set_text)
+acc_svm = accuracy_score(test_set_label, predictedLabels)
+print "Linear SVM accuracy: ", acc_svm
+
+# Display classification results
+""""kFold = 10
+scores = cross_validation.cross_val_score(clf_svm, features, labels_random, cv=kFold)
+print(scores)"""
+
 
