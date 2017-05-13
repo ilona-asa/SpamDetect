@@ -5,6 +5,9 @@ import os
 import re
 import time
 
+from sklearn import metrics
+from sklearn.naive_bayes import MultinomialNB
+
 # ## Part 3: Reading a text-based dataset into pandas
 
 # In[38]:
@@ -166,4 +169,28 @@ print "Linear SVM elapsed time: ", elapsed_SVM
 scores = cross_validation.cross_val_score(clf_svm, features, labels_random, cv=kFold)
 print(scores)"""
 
+#***************Start Naive Bayes Classifier *******************
+#instantiate Multinomail naive Bayes model
+nb = MultinomialNB()
+
+#train the model using train_set_text
+nbtrain = nb.fit(train_set_text, train_set_label)
+
+#make class predictions for test_set_text
+test_pred_class = nb.predict(test_set_text)
+
+# calculate accuracy of class predictions
+print "NB accuracy"
+print metrics.accuracy_score(test_set_label, test_pred_class)
+
+# print the confusion matrix
+print "NB confusion matrix"
+print metrics.confusion_matrix(test_set_label, test_pred_class)
+
+#classification report
+print "NB classification report"
+print metrics.classification_report(test_set_label, test_pred_class)
+
+
+#***************End Naive Bayes Classifier ***************************
 
