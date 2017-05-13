@@ -7,6 +7,11 @@ import time
 
 from sklearn import metrics
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.utils import shuffle
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import metrics
+from sklearn import cross_validation
+from sklearn.neural_network import MLPClassifier
 
 # ## Part 3: Reading a text-based dataset into pandas
 
@@ -73,7 +78,7 @@ for subdirs,dir,files in os.walk(rootdir):
 #print len(listtexts_ham)
 
 #randomize all the dataset for ham and spam separately
-from sklearn.utils import shuffle
+
 """ham_text_random, ham_labels_random = shuffle(listtexts_ham, labels_ham, random_state=0)
 spam_text_random, spam_labels_random = shuffle(listtexts_spam, labels_spam, random_state=0)
 all_text = ham_text_random + spam_text_random
@@ -131,9 +136,7 @@ train_set_text, train_set_label, test_set_text, test_set_label = splitData(featu
 
 # Classifer training and evaluation using k-NN classifier
 # import the class
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn import metrics
-from sklearn import cross_validation
+
 
 tic = time.clock()
 # instantiate the model (with the default parameters)
@@ -193,4 +196,15 @@ print metrics.classification_report(test_set_label, test_pred_class)
 
 
 #***************End Naive Bayes Classifier ***************************
+
+#**************Start of MLP*******************************************
+clf = MLPClassifier(solver = 'lbfgs', alpha=1e-5, hidden_layer_sizes=(5,2), random_state = 1)
+clf.fit(train_set_text,train_set_label)
+predictedLabels = clf.predict(test_set_text)
+print("Classification report for classifier %s: \n %s \n"
+% ('MLP', metrics.classification_report(test_set_label, predictedLabels)))
+print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label, predictedLabels))
+acc_svm = accuracy_score(test_set_label, predictedLabels)
+print "Linear MLP accuracy: ", acc_svm
+#******************End of MLP******************************************
 
