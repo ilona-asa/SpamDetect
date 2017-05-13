@@ -5,7 +5,6 @@ import os
 import re
 import time
 
-from sklearn import metrics
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.utils import shuffle
 from sklearn.neighbors import KNeighborsClassifier
@@ -138,6 +137,7 @@ train_set_text, train_set_label, test_set_text, test_set_label = splitData(featu
 tic = time.clock()
 # instantiate the model (with the default parameters)
 knn = KNeighborsClassifier()
+print knn
 # fit the model with data (occurs in-place)
 knn.fit(train_set_text, train_set_label)
 predict_knn = knn.predict(test_set_text)
@@ -155,6 +155,7 @@ print "k-NN elapsed time: ", elapsed_knn
 from sklearn.svm import LinearSVC
 tic = time.clock()
 clf_svm = LinearSVC()
+print clf_svm
 clf_svm.fit(train_set_text, train_set_label)
 predictedLabels = clf_svm.predict(test_set_text)
 toc = time.clock()
@@ -166,14 +167,17 @@ print "Linear SVM elapsed time: ", elapsed_SVM
 
 #***************Start Naive Bayes Classifier *******************
 #instantiate Multinomail naive Bayes model
+tic = time.clock()
 nb = MultinomialNB()
+print nb
 
 #train the model using train_set_text
 nbtrain = nb.fit(train_set_text, train_set_label)
 
 #make class predictions for test_set_text
 test_pred_class = nb.predict(test_set_text)
-
+toc = time.clock()
+elapsed_NB = toc - tic
 # calculate accuracy of class predictions
 print "NB accuracy"
 print metrics.accuracy_score(test_set_label, test_pred_class)
@@ -185,18 +189,24 @@ print metrics.confusion_matrix(test_set_label, test_pred_class)
 #classification report
 print "NB classification report"
 print metrics.classification_report(test_set_label, test_pred_class)
+print "Naive Bayes elapsed time: ", elapsed_NB
 
 
 #***************End Naive Bayes Classifier ***************************
 
 #**************Start of MLP*******************************************
+tic = time.clock()
 clf = MLPClassifier(solver = 'lbfgs', alpha=1e-5, hidden_layer_sizes=(5,2), random_state = 1)
+print clf
 clf.fit(train_set_text,train_set_label)
 predictedLabels = clf.predict(test_set_text)
+toc = time.clock()
+elapsed_MLP = toc - tic
 print("Classification report for classifier %s: \n %s \n"
 % ('MLP', metrics.classification_report(test_set_label, predictedLabels)))
 print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label, predictedLabels))
-acc_svm = accuracy_score(test_set_label, predictedLabels)
+acc_svm = metrics.accuracy_score(test_set_label, predictedLabels)
 print "Linear MLP accuracy: ", acc_svm
+print "MLP elapsed time: ", elapsed_MLP
 #******************End of MLP******************************************
 
