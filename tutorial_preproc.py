@@ -3,6 +3,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.datasets import load_iris
 import os
 import re
+import time
 
 # ## Part 3: Reading a text-based dataset into pandas
 
@@ -10,6 +11,9 @@ import re
 
 # read file into pandas using a relative path
 #rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
+tic = time.clock()
+toc = time.clock()
+toc - tic
 rootdir = 'preprocessed_data/enron1/'
 listtexts_spam = []
 listtexts_ham = []
@@ -122,35 +126,40 @@ print(len(features))
 ##split data
 train_set_text, train_set_label, test_set_text, test_set_label = splitData(features, labels_random, 0.7)
 
-# k-NN classifier
+# Classifer training and evaluation using k-NN classifier
 # import the class
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import metrics
 from sklearn import cross_validation
 
+tic = time.clock()
 # instantiate the model (with the default parameters)
 knn = KNeighborsClassifier()
-
 # fit the model with data (occurs in-place)
 knn.fit(train_set_text, train_set_label)
-print(knn)
 predict_knn = knn.predict(test_set_text)
-print(predict_knn)
+toc = time.clock()
+elapsed_knn = toc - tic
 print("Classification report for classifier %s: \n %s \n"
 % ('k-NearestNeighbour', metrics.classification_report(test_set_label, predict_knn)))
 print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label, predict_knn))
+print("k-NN Accuracy score:\n %s" % metrics.accuracy_score(test_set_label, predict_knn))
+print "k-NN elapsed time: ", elapsed_knn
 """kFold = 10
 scores = cross_validation.cross_val_score(knn, features, labels_random, cv=kFold)
 print(scores)"""
 
-# 0.5 Classifer training and evaluation using SVM
+# Classifer training and evaluation using SVM
 from sklearn.svm import LinearSVC
-from sklearn.metrics import accuracy_score
+tic = time.clock()
 clf_svm = LinearSVC()
 clf_svm.fit(train_set_text, train_set_label)
 predictedLabels = clf_svm.predict(test_set_text)
-acc_svm = accuracy_score(test_set_label, predictedLabels)
+toc = time.clock()
+acc_svm = metrics.accuracy_score(test_set_label, predictedLabels)
+elapsed_SVM = toc - tic
 print "Linear SVM accuracy: ", acc_svm
+print "Linear SVM elapsed time: ", elapsed_SVM
 
 # Display classification results
 """"kFold = 10
