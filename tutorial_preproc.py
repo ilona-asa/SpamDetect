@@ -134,10 +134,7 @@ print(len(features))
 ##split data
 train_set_text, train_set_label, test_set_text, test_set_label = splitData(features, labels_random, 0.7)
 
-# Classifer training and evaluation using k-NN classifier
-# import the class
-
-
+#***************Start kNN ***************************
 tic = time.clock()
 # instantiate the model (with the default parameters)
 knn = KNeighborsClassifier()
@@ -151,11 +148,10 @@ print("Classification report for classifier %s: \n %s \n"
 print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label, predict_knn))
 print("k-NN Accuracy score:\n %s" % metrics.accuracy_score(test_set_label, predict_knn))
 print "k-NN elapsed time: ", elapsed_knn
-"""kFold = 10
-scores = cross_validation.cross_val_score(knn, features, labels_random, cv=kFold)
-print(scores)"""
 
-# Classifer training and evaluation using SVM
+#***************End kNN ***************************
+
+#**************Start of SVM*******************************************
 from sklearn.svm import LinearSVC
 tic = time.clock()
 clf_svm = LinearSVC()
@@ -166,11 +162,7 @@ acc_svm = metrics.accuracy_score(test_set_label, predictedLabels)
 elapsed_SVM = toc - tic
 print "Linear SVM accuracy: ", acc_svm
 print "Linear SVM elapsed time: ", elapsed_SVM
-
-# Display classification results
-""""kFold = 10
-scores = cross_validation.cross_val_score(clf_svm, features, labels_random, cv=kFold)
-print(scores)"""
+#***************End SVM ***************************
 
 #***************Start Naive Bayes Classifier *******************
 #instantiate Multinomail naive Bayes model
