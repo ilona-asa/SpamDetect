@@ -11,17 +11,18 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn import metrics
 from sklearn import cross_validation
 from sklearn.neural_network import MLPClassifier
+from sklearn import cross_validation
 
 # ## Part 3: Reading a text-based dataset into pandas
 
 # In[38]:
 
 # read file into pandas using a relative path
-#rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/'
+rootdir = '/root/Desktop/Machine_Learning/Project-SpamDetection/enron1/'
 tic = time.clock()
 toc = time.clock()
 toc - tic
-rootdir = 'preprocessed_data/enron1/'
+#rootdir = 'preprocessed_data/enron1/'
 listtexts_spam = []
 listtexts_ham = []
 labels_spam = []
@@ -116,6 +117,7 @@ vect.fit(listtexts_random)
 
 # examine the fitted vocabulary
 features_name = vect.get_feature_names()
+print (len(features_name))	
 #print(type(features))
 #print(len(features))
 
@@ -129,6 +131,8 @@ features_matr = simple_train_dtm.toarray()
 import pandas as pd
 features = pd.DataFrame(simple_train_dtm.toarray(), columns=vect.get_feature_names())
 print(len(features))
+
+featuresnumpy = features.as_matrix()
 
 ##split data
 train_set_text, train_set_label, test_set_text, test_set_label = splitData(features, labels_random, 0.7)
@@ -148,6 +152,9 @@ print("Classification report for classifier %s: \n %s \n"
 print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label, predict_knn))
 print("k-NN Accuracy score:\n %s" % metrics.accuracy_score(test_set_label, predict_knn))
 print "k-NN elapsed time: ", elapsed_knn
+kFold = 10
+scores = cross_validation.cross_val_score(knn,featuresnumpy,labels_random,cv=kFold)
+print(scores)
 
 #***************End kNN ***************************
 
@@ -161,9 +168,16 @@ predictedLabels = clf_svm.predict(test_set_text)
 toc = time.clock()
 acc_svm = metrics.accuracy_score(test_set_label, predictedLabels)
 elapsed_SVM = toc - tic
+print("Classification report for classifier %s: \n %s \n"
+% ('k-NearestNeighbour', metrics.classification_report(test_set_label, predictedLabels)))
+print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label,predictedLabels))
 print "Linear SVM accuracy: ", acc_svm
 print "Linear SVM elapsed time: ", elapsed_SVM
+kFold = 10
+scores = cross_validation.cross_val_score(clf_svm,featuresnumpy,labels_random,cv=kFold)
+print(scores)
 #***************End SVM ***************************
+
 
 #***************Start Naive Bayes Classifier *******************
 #instantiate Multinomail naive Bayes model
@@ -190,23 +204,43 @@ print metrics.confusion_matrix(test_set_label, test_pred_class)
 print "NB classification report"
 print metrics.classification_report(test_set_label, test_pred_class)
 print "Naive Bayes elapsed time: ", elapsed_NB
-
+kFold = 10
+scores = cross_validation.cross_val_score(nb,featuresnumpy,labels_random,cv=kFold)
+print(scores)
 
 #***************End Naive Bayes Classifier ***************************
 
 #**************Start of MLP*******************************************
 tic = time.clock()
 clf = MLPClassifier(solver = 'lbfgs', alpha=1e-5, hidden_layer_sizes=(5,2), random_state = 1)
-print clf
-clf.fit(train_set_text,train_set_label)
+#print train_set_label
+train_set_label_int = []
+for x in train_set_label:
+	if x == 'Ham':
+		train_set_label_int.append(1)
+	else:
+		train_set_label_int.append(0)
+#print train_set_label_int
+
+clf.fit(train_set_text,train_set_label_int)
 predictedLabels = clf.predict(test_set_text)
 toc = time.clock()
 elapsed_MLP = toc - tic
+test_set_label_int = []
+for x in test_set_label:
+	if x == 'Ham':
+		test_set_label_int.append(1)
+	else:
+		test_set_label_int.append(0)
+#print train_set_label_int
 print("Classification report for classifier %s: \n %s \n"
-% ('MLP', metrics.classification_report(test_set_label, predictedLabels)))
-print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label, predictedLabels))
-acc_svm = metrics.accuracy_score(test_set_label, predictedLabels)
+% ('MLP', metrics.classification_report(test_set_label_int, predictedLabels)))
+print("Confusion matrix:\n %s" % metrics.confusion_matrix(test_set_label_int, predictedLabels))
+acc_svm = metrics.accuracy_score(test_set_label_int, predictedLabels)
 print "Linear MLP accuracy: ", acc_svm
 print "MLP elapsed time: ", elapsed_MLP
-#******************End of MLP******************************************
+kFold = 10
+scores = cross_validation.cross_val_score(clf,featuresnumpy,labels_random ,cv=kFold)
+print(scores)
 
+#******************End of MLP******************************************
